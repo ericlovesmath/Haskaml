@@ -15,6 +15,9 @@ eval :: String -> Expr -> IO (Expr)
 eval tab (Num n) = do
     putStrLn $ tab ++ "evaluate: " ++ show n ++ " --> " ++ show n
     return $ Num n
+eval tab (Bool bool) = do
+    putStrLn $ tab ++ "evaluate: " ++ show bool ++ " --> " ++ show bool
+    return $ Bool bool
 eval tab (Fn op args) = do
     putStrLn $ tab ++ "evaluate: " ++ show (Fn op args)
     let tab' = '\t' : tab

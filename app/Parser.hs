@@ -3,10 +3,12 @@ module Parser (parseOCaml, Expr (..)) where
 import Text.Parsec
 import Text.Parsec.String (Parser)
 
-data Expr = Fn String [Expr] | Num Int | Sym String | Let String Expr Expr
+-- TODO: Make Fn support higher ordered functions by mapping from Expr to Func instead
+data Expr = Fn String [Expr] | Num Int | Sym String | Bool Bool | Let String Expr Expr
 
 instance Show Expr where
     show (Num n) = show n
+    show (Bool bool) = show bool
     show (Fn op [l, r]) | isInfix op = "(" ++ unwords [show l, op, show r] ++ ")"
       where
         isInfix = flip elem $ ["+", "-", "/", "*"]
@@ -19,9 +21,13 @@ instance Show Expr where
 strip :: Parser a -> Parser a
 strip p = spaces *> p <* spaces
 
--- Parses to Num (Int) or Sym (String)
+-- Parses to Num (Int), Sym (String), Bool (Bool)
 parseLiteral :: Parser Expr
-parseLiteral = strip (Num . read <$> many1 digit <|> Sym <$> many1 letter)
+parseLiteral =
+    Num . read <$> many1 digit
+        <|> Bool False <$ string "false"
+        <|> Bool True <$ string "true"
+        <|> Sym <$> many1 letter
 
 -- Parsing Arithmetic Operations, follows order of operations
 parseMath :: Parser Expr
@@ -29,10 +35,20 @@ parseMath = parseMath0
   where
     parseMath0 = chainl1 parseMath1 (parseOps '+' '-')
     parseMath1 = chainl1 parseMath2 (parseOps '*' '/')
-    parseMath2 = try (strip $ between (char '(') (char ')') parseMath0) <|> parseLiteral
+    parseMath2 = strip $ try (between (char '(') (char ')') parseMath0) <|> parseLiteral
     parseOps a b = do
         op <- strip (char a <|> char b)
         return $ \x y -> Fn [op] [x, y]
 
+parseLet :: Parser Expr
+parseLet = do
+    _ <- strip (string "let")
+    name <- many1 letter
+    _ <- strip (char '=')
+    bind <- parseMath
+    _ <- strip (string "in")
+    expr <- parseLet <|> parseMath
+    return $ Let name bind expr
+
 parseOCaml :: String -> Either ParseError Expr
-parseOCaml = parse parseMath ""
+parseOCaml = parse (strip (try parseLet <|> parseMath)) ""
