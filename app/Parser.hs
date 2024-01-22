@@ -4,17 +4,19 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 
 -- TODO: Make Fn support higher ordered functions by mapping from Expr to Func instead
-data Expr = Fn String [Expr] | Num Int | Sym String | Bool Bool | Let String Expr Expr
+data Expr = Fn String [Expr] | Num Int | Sym String | Bool Bool | Let String Expr Expr | If Expr Expr Expr | Float Float
 
 instance Show Expr where
     show (Num n) = show n
+    show (Float n) = show n
     show (Bool bool) = show bool
     show (Fn op [l, r]) | isInfix op = "(" ++ unwords [show l, op, show r] ++ ")"
       where
-        isInfix = flip elem $ ["+", "-", "/", "*"]
+        isInfix = flip elem $ ["+", "-", "/", "*", "=", "+.", "-.", "/.", "*."]
     show (Fn op args) = "(" ++ unwords (op : map show args) ++ ")"
     show (Sym sym) = sym
     show (Let sym bind expr) = sym ++ " = " ++ show bind ++ " to " ++ show expr
+    show (If cond t f) = "if " ++ show cond ++ " then " ++ show t ++ " else " ++ show f
 
 -- I would like to apologize in advance for the parser code
 
