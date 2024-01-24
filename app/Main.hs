@@ -25,7 +25,9 @@ printParser inp =
 
 main :: IO ()
 main = do
-    printEval $ Let "x" (Num 1) (Let "x" (Num 2) (Let "x" (Num 3) (Fn "*" [Sym "x", Fn "*" [Sym "x", Sym "x"]])))
+    -- printEval $ Let "x" (Num 1) (Let "x" (Num 2) (Let "x" (Num 3) (Fn "*" [Sym "x", Fn "*" [Sym "x", Sym "x"]])))
+    printEval $ Let "x" (Fn "*" [Num 2, Num 10]) (Let "y" (Fn "+" [Num 3, Num 4]) (Let "y" (Num 14) (Let "z" (Num 22) (Fn "*" [Sym "x", Fn "*" [Sym "y", Sym "z"]]))))
+    -- (fun x y -> (fun y -> (fun z -> x * y * z) 22) 14) (2 * 10) (3 + 4)
     -- printEval $ Let "x" (Num 1) (Let "y" (Num 2) (Let "z" (Num 3) (Fn "*" [Sym "x", Fn "*" [Sym "y", Sym "z"]])))
     -- printEval $ Let "a" (Float 1.0) (Let "b" (Float 20.0) (Let "c" (Float 3.0) (Fn "-." [Fn "*." [Sym "b", Sym "b"], Fn "*." [Float 4.0, Fn "*." [Sym "a", Sym "c"]]])))
     -- printEval $ Let "x" (Num 20) (Let "y" (Fn "*" [Num 2, Num 4]) (Fn "*" [Sym "x", Fn "+" [Num 2, Sym "y"]]))
